@@ -12,8 +12,8 @@ spec:
       - key: app.kubernetes.io/name
         operator: In
         values:
-          - {{ .Release.Name }}-workflow-controller
-          - {{ .Release.Name }}-server
+          - argo-workflow-controller
+          - argo-server
   policyTypes:
     - Egress
   egress:
