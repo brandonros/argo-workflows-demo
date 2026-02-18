@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  init-databases.sh: |
+    #!/usr/bin/env bash
+    set -e
+    {{- range .Values.initDatabases }}
+
+    # Database: {{ .name }}
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+      DO \$\$
+      BEGIN
+        IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '{{ .owner }}') THEN
+          CREATE ROLE {{ .owner }} WITH LOGIN PASSWORD '{{ .password }}';
+        END IF;
+      END
+      \$\$;
+    EOSQL
+
+    if ! psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -tAc "SELECT 1 FROM pg_database WHERE datname = '{{ .name }}'" | grep -q 1; then
+      psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -c "CREATE DATABASE {{ .name }} OWNER {{ .owner }}"
+    fi
+    {{- end }}

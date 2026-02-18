@@ -1,0 +1,35 @@
+schedule: "0 2 * * *"
+timezone: America/New_York
+concurrencyPolicy: Forbid
+serviceAccountName: argo-workflow
+defaultFilename: nightly-export.csv
+
+container:
+  image: localhost:5000/dotnet-lgtmp-console:latest
+  command:
+    - /app/run
+
+persistence:
+  # Set to an existing PVC name to skip creating PV/PVC
+  existingClaim: ""
+  # PV/PVC settings (used when existingClaim is empty)
+  storageClass: ""
+  size: 5Gi
+  accessMode: ReadWriteMany
+  # hostPath for local dev, set to "" and use storageClass for production/NFS
+  hostPath: /mnt/etl-data
+
+env:
+  DOTNET_ENVIRONMENT: Production
+  DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: "false"
+  CONNECTION_STRING: "Host=pgbouncer.pgbouncer.svc.cluster.local;Port=5433;Database=dotnet_lgtmp;Username=dotnet_lgtmp;Password=dotnet_lgtmp_homelab"
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://alloy.alloy.svc.cluster.local:4318
+  OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+  OTEL_SERVICE_NAME: dotnet-lgtmp-console
+  CORECLR_ENABLE_PROFILING: "1"
+  CORECLR_PROFILER: "{BD1A650D-AC5D-4896-B64F-D6FA25D6B26A}"
+  CORECLR_PROFILER_PATH: /pyroscope/Pyroscope.Profiler.Native.so
+  LD_PRELOAD: /pyroscope/Pyroscope.Linux.ApiWrapper.x64.so
+  PYROSCOPE_PROFILING_ENABLED: "1"
+  PYROSCOPE_SERVER_ADDRESS: http://pyroscope.pyroscope.svc.cluster.local:4040
+  PYROSCOPE_APPLICATION_NAME: dotnet-lgtmp-console

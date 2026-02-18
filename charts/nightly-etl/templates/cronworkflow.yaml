@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflow
+metadata:
+  name: nightly-etl
+  labels:
+    app.kubernetes.io/name: nightly-etl
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  schedule: {{ .Values.schedule | quote }}
+  timezone: {{ .Values.timezone | quote }}
+  concurrencyPolicy: {{ .Values.concurrencyPolicy | quote }}
+  workflowSpec:
+    serviceAccountName: {{ .Values.serviceAccountName | quote }}
+    entrypoint: run
+    volumes:
+      - name: etl-data
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingClaim | default "etl-data" }}
+    arguments:
+      parameters:
+        - name: filename
+          value: {{ .Values.defaultFilename | quote }}
+    templates:
+      - name: run
+        inputs:
+          parameters:
+            - name: filename
+        container:
+          image: {{ .Values.container.image | quote }}
+          command:
+            {{- toYaml .Values.container.command | nindent 12 }}
+          args:
+            - "/data/{{`{{inputs.parameters.filename}}`}}"
+          volumeMounts:
+            - name: etl-data
+              mountPath: /data
+              readOnly: true
+          env:
+            {{- range $name, $value := .Values.env }}
+            - name: {{ $name }}
+              value: {{ $value | quote }}
+            {{- end }}

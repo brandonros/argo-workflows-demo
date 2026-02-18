@@ -1,0 +1,98 @@
+postgres:
+  superuser: postgres
+  password: changeme
+  database: postgres
+
+initDatabases:
+  - name: workflows
+    owner: workflows
+    password: workflows123!
+
+app-template:
+  controllers:
+    main:
+      type: statefulset
+      statefulset:
+        podManagementPolicy: OrderedReady
+      containers:
+        main:
+          image:
+            repository: postgres
+            tag: 18.2-trixie
+            pullPolicy: IfNotPresent
+          env:
+            POSTGRES_USER:
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: username
+            POSTGRES_PASSWORD:
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
+            POSTGRES_DB: postgres
+            PGDATA: /var/lib/postgresql/data/pgdata
+          probes:
+            liveness:
+              enabled: true
+              custom: true
+              spec:
+                exec:
+                  command:
+                    - pg_isready
+                    - -U
+                    - postgres
+                initialDelaySeconds: 15
+                periodSeconds: 10
+                timeoutSeconds: 5
+                failureThreshold: 6
+            readiness:
+              enabled: true
+              custom: true
+              spec:
+                exec:
+                  command:
+                    - pg_isready
+                    - -U
+                    - postgres
+                initialDelaySeconds: 5
+                periodSeconds: 5
+                timeoutSeconds: 3
+                failureThreshold: 3
+            startup:
+              enabled: true
+              custom: true
+              spec:
+                exec:
+                  command:
+                    - pg_isready
+                    - -U
+                    - postgres
+                initialDelaySeconds: 10
+                periodSeconds: 5
+                timeoutSeconds: 3
+                failureThreshold: 30
+
+  service:
+    main:
+      controller: main
+      type: ClusterIP
+      ports:
+        postgres:
+          port: 5432
+          protocol: TCP
+          targetPort: 5432
+
+  persistence:
+    data:
+      type: persistentVolumeClaim
+      accessMode: ReadWriteOnce
+      size: 10Gi
+      globalMounts:
+        - path: /var/lib/postgresql/data
+    init-scripts:
+      type: configMap
+      name: postgres-init
+      globalMounts:
+        - path: /docker-entrypoint-initdb.d

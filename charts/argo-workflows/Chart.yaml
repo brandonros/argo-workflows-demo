@@ -1,0 +1,12 @@
+apiVersion: v2
+name: argo-workflows
+description: Argo Workflows with PostgreSQL persistence and nightly-etl CronWorkflow
+type: application
+version: 0.1.0
+appVersion: "3.7.7"
+
+dependencies:
+  - name: argo-workflows
+    version: 0.47.3
+    repository: https://argoproj.github.io/argo-helm
+    alias: argo

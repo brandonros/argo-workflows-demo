@@ -1,0 +1,42 @@
+# Argo-Postgres connection secret values
+# Used by templates/secret-postgres-config.yaml
+argoPostgresConfig:
+  username: workflows
+  password: workflows123!
+
+# Upstream argo-workflows chart values (via alias)
+argo:
+  controller:
+    replicas: 1
+    workflowNamespaces:
+      - argo
+    persistence:
+      archive: true
+      nodeStatusOffLoad: true
+      postgresql:
+        host: postgres
+        port: "5432"
+        database: workflows
+        tableName: argo_workflows
+        userNameSecret:
+          name: argo-postgres-config
+          key: username
+        passwordSecret:
+          name: argo-postgres-config
+          key: password
+        ssl: false
+        sslMode: disable
+
+  workflow:
+    serviceAccount:
+      create: true
+      name: argo-workflow
+
+  server:
+    replicas: 1
+    baseHref: /
+    authModes:
+      - server
+    secure: false
+    autoscaling:
+      enabled: false
