@@ -32,7 +32,7 @@ argo:
       nodeStatusOffLoad: true
       postgresql:
         host: postgres
-        port: "5432"
+        port: 5432
         database: workflows
         tableName: argo_workflows
         userNameSecret:
