@@ -14,6 +14,9 @@ app-template:
       type: statefulset
       statefulset:
         podManagementPolicy: OrderedReady
+      pod:
+        imagePullSecrets:
+          - name: my-registry-secret
       containers:
         main:
           image:

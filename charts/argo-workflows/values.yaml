@@ -6,7 +6,19 @@ argoPostgresConfig:
 
 # Upstream argo-workflows chart values (via alias)
 argo:
+  images:
+    tag: v3.7.9
+    pullSecrets:
+      - name: my-registry-secret
+
   controller:
+    image:
+      registry: quay.io
+      repository: argoproj/workflow-controller
+      tag: v3.7.9
+    serviceAccount:
+      create: false
+      name: argo-workflow-controller
     replicas: 1
     workflowNamespaces:
       - argo
@@ -29,10 +41,23 @@ argo:
 
   workflow:
     serviceAccount:
-      create: true
+      create: false
       name: argo-workflow
 
+  executor:
+    image:
+      registry: quay.io
+      repository: argoproj/argoexec
+      tag: v3.7.9
+
   server:
+    image:
+      registry: quay.io
+      repository: argoproj/argocli
+      tag: v3.7.9
+    serviceAccount:
+      create: false
+      name: argo-server
     replicas: 1
     baseHref: /
     authModes:
