@@ -5,7 +5,9 @@ argoPostgresConfig:
   password: workflows123!
 
 networkPolicy:
-  apiServerCIDR: 172.11.0.1/32
+  apiServerCIDRs:
+    - 172.11.0.1/32
+    - 100.112.1.193/32
 
 # Upstream argo-workflows chart values (via alias)
 argo:
@@ -15,6 +17,8 @@ argo:
       - name: my-registry-secret
 
   controller:
+    logging:
+      level: debug
     podAnnotations:
       sidecar.istio.io/inject: "false"
     image:
@@ -59,6 +63,8 @@ argo:
       tag: v3.7.9
 
   server:
+    logging:
+      level: debug
     podAnnotations:
       sidecar.istio.io/inject: "false"
     image:

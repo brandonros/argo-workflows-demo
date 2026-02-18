@@ -19,8 +19,10 @@ spec:
   egress:
     # Kubernetes API server
     - to:
+        {{- range .Values.networkPolicy.apiServerCIDRs }}
         - ipBlock:
-            cidr: {{ .Values.networkPolicy.apiServerCIDR }}
+            cidr: {{ . }}
+        {{- end }}
       ports:
         - port: 443
           protocol: TCP
