@@ -8,8 +8,12 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
   podSelector:
-    matchLabels:
-      app.kubernetes.io/part-of: argo-workflows
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - {{ .Release.Name }}-workflow-controller
+          - {{ .Release.Name }}-server
   policyTypes:
     - Egress
   egress:
