@@ -4,6 +4,9 @@ argoPostgresConfig:
   username: workflows
   password: workflows123!
 
+networkPolicy:
+  apiServerCIDR: 172.11.0.1/32
+
 # Upstream argo-workflows chart values (via alias)
 argo:
   images:
@@ -12,6 +15,8 @@ argo:
       - name: my-registry-secret
 
   controller:
+    podAnnotations:
+      sidecar.istio.io/inject: "false"
     image:
       registry: quay.io
       repository: argoproj/workflow-controller
@@ -43,6 +48,9 @@ argo:
     serviceAccount:
       create: false
       name: argo-workflow
+    podMetadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
 
   executor:
     image:
@@ -51,6 +59,8 @@ argo:
       tag: v3.7.9
 
   server:
+    podAnnotations:
+      sidecar.istio.io/inject: "false"
     image:
       registry: quay.io
       repository: argoproj/argocli

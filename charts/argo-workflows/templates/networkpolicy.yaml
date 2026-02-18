@@ -1,0 +1,37 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: argo-workflows-allow-apiserver
+  labels:
+    app.kubernetes.io/name: argo-workflows
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/part-of: argo-workflows
+  policyTypes:
+    - Egress
+  egress:
+    # Kubernetes API server
+    - to:
+        - ipBlock:
+            cidr: {{ .Values.networkPolicy.apiServerCIDR }}
+      ports:
+        - port: 443
+          protocol: TCP
+    # DNS resolution
+    - to: []
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    # PostgreSQL
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgres
+      ports:
+        - port: 5432
+          protocol: TCP
